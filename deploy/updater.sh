@@ -78,11 +78,16 @@ deploy() {
 log "watching $REPO_DIR every ${INTERVAL}s (remote: $REMOTE, services: $SERVICES)"
 failed=""
 sleep 5
+deployed=$(running_version)
+loops=0
 while :; do
   pull
   head=$(git rev-parse --short=12 HEAD 2>/dev/null)
-  if [ -n "$head" ] && [ "$head" != "$failed" ] && [ "$head" != "$(running_version)" ]; then
-    deploy "$head" || failed=$head
+  # Docker is only asked about the running version occasionally (e.g. after manual rebuilds).
+  loops=$((loops + 1))
+  [ $((loops % 10)) -eq 0 ] && deployed=$(running_version)
+  if [ -n "$head" ] && [ "$head" != "$failed" ] && [ "$head" != "$deployed" ]; then
+    if deploy "$head"; then deployed=$head; else failed=$head; fi
   fi
   if [ -f "$REPO_DIR/deploy/updater.sh" ] && ! cmp -s "$REPO_DIR/deploy/updater.sh" "$SELF"; then
     log "updater script changed - reloading it"

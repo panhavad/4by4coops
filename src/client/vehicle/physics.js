@@ -209,6 +209,8 @@ export class VehiclePhysics {
     if (this.flooded) drive = 0;
     const idle = Math.abs(drive) < 0.02 && brake < 0.02;
     const hold = idle && speed < 1.2 && this.groundedCount >= 3 && !this.winch;
+    // Engine braking: an idle truck slows down instead of free-wheeling down every slope.
+    if (idle && !this.winch) brake = 0.18;
     const top = drive >= 0 ? this.maxSpeed : 9;
     const ratio = Math.min(Math.abs(fwdSpeed) / top, 1);
     const wheelDrive = (drive * this.engineForce * (1 - ratio * ratio)) / 4;
