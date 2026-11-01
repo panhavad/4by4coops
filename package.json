@@ -1,0 +1,25 @@
+{
+  "name": "ridgeline-4x4",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ridgeline 4x4 - a lightweight co-op off-road exploration game for the browser (desktop + phone).",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "dev:client": "vite",
+    "dev:server": "node --watch server/index.js",
+    "build": "vite build",
+    "start": "node server/index.js",
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "three": "^0.186.1",
+    "vite": "^8.3.5"
+  }
+}

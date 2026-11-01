@@ -1,0 +1,44 @@
+# Ridgeline 4x4 - Docker Compose deployment
+#
+#   docker compose up -d --build        -> game on http://<host>:8088 (HOST_PORT in .env)
+#
+# The "updater" service watches this git checkout. Every new commit (pushed to the remote and
+# pulled automatically, or committed locally) is rebuilt and redeployed; connected players
+# reconnect and reload into the new version automatically.
+name: ridgeline
+
+services:
+  game:
+    build:
+      context: .
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-dev}
+    image: ridgeline-4x4:latest
+    init: true
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-8088}:8080"
+    volumes:
+      - gamedata:/data
+    stop_grace_period: 10s
+
+  updater:
+    image: docker:29-cli
+    restart: unless-stopped
+    depends_on:
+      - game
+    working_dir: /repo
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/repo
+    environment:
+      UPDATE_INTERVAL: ${UPDATE_INTERVAL:-30}
+      UPDATE_BRANCH: ${UPDATE_BRANCH:-}
+      UPDATE_REMOTE: ${UPDATE_REMOTE:-origin}
+      UPDATE_SERVICES: game
+      HOST_PORT: ${HOST_PORT:-8088}
+    # Run a copy so a `git pull` that changes the script can't corrupt the running shell.
+    entrypoint: ["/bin/sh", "-c", "cp /repo/deploy/updater.sh /tmp/updater.sh && exec /bin/sh /tmp/updater.sh"]
+
+volumes:
+  gamedata:

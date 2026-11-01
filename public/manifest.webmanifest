@@ -1,0 +1,13 @@
+{
+  "name": "Ridgeline 4x4",
+  "short_name": "Ridgeline",
+  "description": "Co-op off-road exploration in your browser.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1e2b28",
+  "theme_color": "#1e2b28",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#1e2b28" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="Ridgeline 4x4 - a lightweight co-op off-road exploration game. Drive, discover and get over the hill with up to 3 friends, right in your browser." />
+    <title>Ridgeline 4x4</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+    <div id="labels"></div>
+    <div id="flash"></div>
+
+    <div id="hud" class="hud hidden">
+      <div class="top-left">
+        <div class="chip region"><b id="region-name">-</b><span id="sky-icons"></span></div>
+        <div class="chip objective" id="objective"></div>
+        <div class="chip net" id="net-status"></div>
+      </div>
+      <div class="top-right">
+        <canvas id="minimap" data-action="map" title="Map (M)"></canvas>
+        <div id="players" class="players"></div>
+      </div>
+      <div class="top-buttons" id="top-buttons">
+        <button data-action="menu" title="Menu (Esc)">☰</button>
+        <button data-action="journal" title="Journal (J)">📔</button>
+        <button data-action="camera" title="Camera view (C)">🎥</button>
+      </div>
+      <div id="toasts"></div>
+      <div id="prompt" class="prompt hidden"></div>
+      <div id="center-msg" class="center-msg hidden"></div>
+      <div class="speedo">
+        <b id="speed">0</b><small>km/h</small>
+        <div id="status-line"></div>
+      </div>
+      <div class="actions" id="actions">
+        <button data-action="interact" id="btn-interact" class="act hidden">🔧<span>Garage</span></button>
+        <button data-action="winch" id="btn-winch" class="act">🪝<span>Winch</span></button>
+        <button data-action="plank" id="btn-plank" class="act">🪵<span>Plank <b id="plank-count">2</b></span></button>
+        <button data-action="photo" class="act">📷<span>Photo</span></button>
+        <button data-action="horn" class="act">📯<span>Horn</span></button>
+        <button data-action="emotes" class="act">😀<span>Emote</span></button>
+        <button data-action="recover" class="act">🔄<span>Recover</span></button>
+        <button data-hold="handbrake" class="act touch-only">🅿️<span>Handbrake</span></button>
+      </div>
+      <div id="emote-bar" class="emote-bar hidden"></div>
+      <div id="touch" class="touch-controls">
+        <div id="steer" class="steer"><div class="knob"></div><span>◀ steer ▶</span></div>
+        <div class="pedals">
+          <div id="brake" class="pedal brake">BRAKE<small>reverse</small></div>
+          <div id="gas" class="pedal gas">GAS</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="photo-ui" class="photo-ui hidden">
+      <div class="viewfinder"></div>
+      <div class="photo-hint">Drag to orbit · pinch / scroll to zoom · frame an animal to add it to your compendium</div>
+      <button data-action="shutter" class="shutter" title="Take photo (Enter)"></button>
+      <button data-action="photo" class="photo-exit">✕ Done</button>
+    </div>
+
+    <div id="start" class="screen">
+      <div class="card start-card">
+        <h1>RIDGELINE <span>4x4</span></h1>
+        <p class="tag">A co-op off-road exploration game. Drive slow, explore far, and get over the hill — solo or with up to 3 friends.</p>
+        <div id="invite" class="invite hidden">You've been invited to expedition <b id="invite-code"></b></div>
+        <label class="field">Driver name<input id="name" maxlength="16" autocomplete="nickname" spellcheck="false" /></label>
+        <div class="field">Paint<div id="colors" class="swatches"></div></div>
+        <button id="btn-join-invite" class="primary hidden">Join expedition</button>
+        <button id="btn-new" class="primary">Start new expedition</button>
+        <div class="join-row">
+          <input id="code" placeholder="ROOM CODE" maxlength="5" autocomplete="off" spellcheck="false" />
+          <button id="btn-join">Join</button>
+        </div>
+        <button id="btn-offline" class="ghost">Play offline</button>
+        <p id="start-error" class="error"></p>
+        <div class="settings">
+          <label>Graphics
+            <select id="quality">
+              <option value="auto">Auto</option>
+              <option value="low">Low (battery saver)</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+          <label class="toggle"><input type="checkbox" id="sound" checked /> Sound</label>
+        </div>
+        <details class="help">
+          <summary>Controls &amp; tips</summary>
+          <p><b>Keyboard:</b> WASD / arrows drive · Space handbrake · Q winch · E plank · P photo · H horn · R recover · C camera · M map · J journal · G garage · T emotes</p>
+          <p><b>Touch:</b> drag the left pad to steer, hold GAS / BRAKE on the right. Drag the view to look around, pinch to zoom.</p>
+          <p><b>Gamepad:</b> left stick steer · RT gas · LT brake · A handbrake · X winch · Y plank · B recover.</p>
+          <p>Find fallen <b>meteorites</b> to power the portal to the next region. Climb to <b>viewpoints</b> to reveal the map, visit <b>cabins</b> to customise your truck, open <b>supply crates</b> for upgrades and photograph <b>wildlife</b> for your compendium. Use <b>planks</b> to bridge streams and the <b>winch</b> to pull yourself (or a friend) out of trouble.</p>
+        </details>
+        <p class="version" id="version"></p>
+      </div>
+    </div>
+
+    <div id="loading" class="screen hidden">
+      <div class="card loading-card">
+        <h2 id="loading-title">Preparing expedition…</h2>
+        <div class="bar"><div id="loading-bar"></div></div>
+        <p id="loading-tip" class="tip"></p>
+      </div>
+    </div>
+
+    <div id="menu" class="screen dim hidden">
+      <div class="card">
+        <h2>Expedition <span id="menu-code" class="code"></span></h2>
+        <button id="btn-invite" class="primary">📨 Invite friends</button>
+        <button id="btn-resume">Resume</button>
+        <button id="btn-camp">🏕️ Return to base camp</button>
+        <button id="btn-teammate">🚙 Jump to a teammate</button>
+        <button id="btn-fullscreen">⛶ Fullscreen</button>
+        <div class="settings">
+          <label>Graphics
+            <select id="quality2">
+              <option value="auto">Auto</option>
+              <option value="low">Low (battery saver)</option>
+              <option value="high">High</option>
+            </select>
+          </label>
+          <label class="toggle"><input type="checkbox" id="sound2" checked /> Sound</label>
+        </div>
+        <button id="btn-leave" class="ghost">Leave expedition</button>
+      </div>
+    </div>
+
+    <div id="map-panel" class="panel hidden">
+      <div class="panel-head"><h2>Map — <span id="map-region"></span></h2><button data-close>✕</button></div>
+      <canvas id="bigmap"></canvas>
+      <div class="legend">🏕️ camp · 🏠 cabin · 🔭 viewpoint · ⭐ landmark · ☄️ meteorite · 📦 crate · 🌀 portal · ? unexplored</div>
+    </div>
+
+    <div id="journal" class="panel hidden">
+      <div class="panel-head">
+        <div class="tabs">
+          <button data-tab="discover" class="on">Discoveries</button>
+          <button data-tab="wildlife">Wildlife</button>
+          <button data-tab="upgrades">Upgrades</button>
+          <button data-tab="photos">Photos</button>
+        </div>
+        <button data-close>✕</button>
+      </div>
+      <div id="journal-body" class="panel-body"></div>
+    </div>
+
+    <div id="garage" class="panel hidden">
+      <div class="panel-head"><h2>🔧 Cabin garage</h2><button data-close>✕</button></div>
+      <div class="panel-body">
+        <div class="field">Paint<div id="garage-colors" class="swatches"></div></div>
+        <div class="field">Accessories<div id="garage-acc" class="acc-list"></div></div>
+        <button id="btn-rest">🌙 Rest until morning</button>
+        <p class="tip">Resting skips time to sunrise for the whole team.</p>
+      </div>
+    </div>
+
+    <div id="rotate-hint">↻ Rotate your phone to landscape for the best view</div>
+    <script type="module" src="/src/client/main.js"></script>
+  </body>
+</html>
