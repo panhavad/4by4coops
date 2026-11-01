@@ -55,11 +55,13 @@ export class CameraRig {
     }
 
     const yaw = this.heading + this.orbitYaw;
-    const dist = m.dist * this.zoom;
+    // Tall (portrait) screens see less horizontally - pull the camera back a bit.
+    const portrait = this.camera.aspect < 1 && !this.photo ? 1.4 : 1;
+    const dist = m.dist * this.zoom * portrait;
     const tx = car.pos.x;
     const ty = car.pos.y + m.look;
     const tz = car.pos.z;
-    _d.set(tx + Math.sin(yaw) * dist, ty + m.height * this.zoom + this.orbitPitch * dist * 0.8, tz + Math.cos(yaw) * dist);
+    _d.set(tx + Math.sin(yaw) * dist, ty + m.height * this.zoom * portrait + this.orbitPitch * dist * 0.8, tz + Math.cos(yaw) * dist);
     // Rise over tree canopies that would hide the truck (cheap collider probe along the view line).
     let blocked = 0;
     if (world && this.mode < 2 && !this.photo) {

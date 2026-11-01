@@ -66,7 +66,8 @@ docker compose up -d --build
 
 The game is served on `http://<host>:8088`. Put it behind your usual reverse proxy for HTTPS.
 WebSockets use the same origin at `/ws`, so `wss://` works automatically. Room progress is stored in
-the `gamedata` volume and survives restarts and updates.
+the `gamedata` volume and survives restarts and updates. On first start, the updater rebuilds once
+(from cache, quick) to stamp the current commit into the image. Stop everything with `docker compose down`.
 
 ### Auto-update on every git commit
 
